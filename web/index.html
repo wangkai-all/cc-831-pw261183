@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>公平工作包分配工作台</title>
+  <meta name="description" content="不可拆工作包、异质估时、资格硬约束、EF1 嫉妒解释、承诺台账与方案比较。" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-row">
+      <div>
+        <div class="eyebrow">Exact allocation · EF1 · Commitment ledger</div>
+        <h1>公平工作包分配工作台</h1>
+        <p class="header-description">
+          工作包不可拆分；成员用<strong>自己的估时</strong>承担负荷，用自己的眼睛评估嫉妒。
+          求解器只在资格、容量、同包/互斥和已接受承诺都满足时给方案，不靠改估时制造可行解。
+        </p>
+      </div>
+      <div class="header-actions">
+        <button id="themeToggle" class="btn" type="button">切换深色模式</button>
+        <button id="resetLedgerTop" class="btn danger" type="button">恢复示例台账</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="grid top-grid">
+      <aside class="card" aria-label="场景选择">
+        <h2>虚构场景</h2>
+        <div id="scenarioList" class="scenario-list"></div>
+        <p id="scenarioDescription" class="muted small" style="margin-top:12px"></p>
+        <div class="alert warning small">
+          <strong>规则口径</strong>
+          <ul>
+            <li>负荷 = 该成员对本人名下工作包的估时之和。</li>
+            <li>容量是硬约束，调小可能无解。</li>
+            <li>家务型 EF1：移走羡慕者自己束中的一项后不再嫉妒。</li>
+          </ul>
+        </div>
+      </aside>
+
+      <section class="card" aria-label="求解控制与关键指标">
+        <div class="header-row">
+          <div>
+            <h2 style="margin-bottom:4px">求解与方案比较</h2>
+            <div id="solveMeta" class="muted small"></div>
+          </div>
+          <div class="segmented" role="group" aria-label="选择优化目标">
+            <button class="btn" type="button" data-objective="burden">最小最大负担</button>
+            <button class="btn" type="button" data-objective="ef1">逼近/达到 EF1</button>
+            <button class="btn" type="button" data-objective="cost">总成本</button>
+          </div>
+        </div>
+
+        <div id="globalAlerts"></div>
+        <div id="kpiGrid" class="kpi-grid" style="margin-top:14px"></div>
+
+        <div class="two-col">
+          <div>
+            <h3>三条最优边界互相比较</h3>
+            <div id="objectiveCards" class="plan-columns" style="grid-template-columns:1fr;"></div>
+          </div>
+          <div>
+            <h3>试调一条容量</h3>
+            <p class="tiny muted">修改任意成员容量后点击“求解容量试算”。对比列显示同一目标在原容量与试算容量下的最优值。</p>
+            <div id="capacityEditor" class="capacity-grid"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+              <button id="applyCapacity" class="btn primary" type="button">求解容量试算</button>
+              <button id="resetCapacity" class="btn" type="button">恢复容量</button>
+            </div>
+            <div id="capacityDelta" class="small" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="workspace-grid grid">
+      <section class="card" aria-label="分配看板">
+        <div class="header-row">
+          <div>
+            <h2>分配看板</h2>
+            <div class="segmented" role="group" aria-label="选择承诺状态">
+              <button class="btn" type="button" data-plan-mode="committed">遵守已接受承诺</button>
+              <button class="btn" type="button" data-plan-mode="free">自由重排对照</button>
+              <button class="btn" type="button" data-capacity-side="baseline">原容量</button>
+              <button class="btn" type="button" data-capacity-side="adjusted">试算容量</button>
+            </div>
+          </div>
+          <div id="planBadges" class="small muted"></div>
+        </div>
+        <div id="planAlerts"></div>
+        <div id="burdenChart" class="bar-chart" aria-label="成员负担条形图"></div>
+        <div class="bar-legend">
+          <span><i class="legend-key" style="background:var(--series-1)"></i>本人估时负荷</span>
+          <span><i class="legend-key" style="background:var(--text-primary)"></i>容量线</span>
+          <span>条末数字为负荷；括号内为容量使用率。完整数值也在下方表格中。</span>
+        </div>
+        <div id="planBoard" class="plan-columns" style="margin-top:16px"></div>
+      </section>
+
+      <aside class="grid" style="gap:16px">
+        <section class="card" aria-label="嫉妒解释器">
+          <h2>为什么羡慕？</h2>
+          <div class="envy-pair-selects">
+            <div class="form-row" style="margin:0">
+              <label for="observerSelect">观察者</label>
+              <select id="observerSelect"></select>
+            </div>
+            <div class="versus">vs</div>
+            <div class="form-row" style="margin:0">
+              <label for="targetSelect">另一成员的束</label>
+              <select id="targetSelect"></select>
+            </div>
+          </div>
+          <div id="envyPanel"></div>
+        </section>
+
+        <section class="card" aria-label="接受台账">
+          <h2>接受台账 / 承诺锁</h2>
+          <p class="small muted">成员接受后，重算只允许移动未接受项。若同包依赖把未接受项强制带给同一人，卡片会标注“依赖强制”。已接受包改给他人会被拒绝；演示请清空或恢复示例台账。</p>
+          <form id="acceptForm">
+            <div class="form-row">
+              <label for="acceptPackage">工作包</label>
+              <select id="acceptPackage"></select>
+            </div>
+            <div class="form-inline">
+              <div class="form-row">
+                <label for="acceptMember">接受成员</label>
+                <select id="acceptMember"></select>
+              </div>
+              <div class="form-row">
+                <label for="acceptNote">备注</label>
+                <input id="acceptNote" type="text" placeholder="可选" />
+              </div>
+            </div>
+            <button class="btn primary" type="submit">记入接受台账并锁定</button>
+          </form>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+            <button id="clearLedger" class="btn" type="button">清空本场景承诺</button>
+            <button id="seedLedger" class="btn" type="button">恢复本场景示例</button>
+          </div>
+          <div id="ledgerList" class="ledger-list"></div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="grid" style="grid-template-columns:minmax(0,1fr);margin-top:16px">
+      <section class="card" aria-label="独立枚举核对">
+        <div class="header-row">
+          <div>
+            <h2>小实例独立枚举核对</h2>
+            <p class="muted small" style="margin:0">
+              不经过块压缩，直接枚举所有“工作包 × 成员”组合，再用独立硬约束检查器过滤。
+              此核对默认不套用台账锁，专门验证资格、容量、同包/互斥与最优界；承诺锁由上方求解器和后端测试核对。
+            </p>
+          </div>
+          <div class="header-actions">
+            <select id="enumScenario" style="width:260px" aria-label="枚举场景"></select>
+            <button id="runEnumeration" class="btn primary" type="button">运行枚举核对</button>
+          </div>
+        </div>
+        <div id="enumerationResult"></div>
+      </section>
+    </section>
+
+    <p class="footer-note">
+      数据均为虚构。求解器使用 Python 标准库实现完整 DFS/枚举；无外部优化器、无前端图表库。
+      可运行 <code>python -m unittest discover -s tests -v</code> 核对最优界与承诺冲突。
+    </p>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

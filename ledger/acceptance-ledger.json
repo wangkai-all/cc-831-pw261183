@@ -1,0 +1,25 @@
+{
+  "records": [
+    {
+      "scenario": "constraint_lab",
+      "package_id": "c1",
+      "member_id": "m1",
+      "source": "seed",
+      "note": "一诺已接受领域建模"
+    },
+    {
+      "scenario": "constraint_lab",
+      "package_id": "c2",
+      "member_id": "m2",
+      "source": "seed",
+      "note": "二则已接受数据结构改造；与 c1 必须同人冲突"
+    },
+    {
+      "scenario": "studio",
+      "package_id": "p_api",
+      "member_id": "m3",
+      "source": "seed",
+      "note": "陈禾已接受开放 API 限流，并承诺本周先给出限流方案"
+    }
+  ]
+}
